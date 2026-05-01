@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" fill="none">
+  <!-- Data bar mark: three bars, descending right = pipeline/flow motif -->
+  <rect x="0"  y="6"  width="7" height="28" rx="2" fill="#4ec9b0"/>
+  <rect x="11" y="12" width="7" height="22" rx="2" fill="#4ec9b0" opacity="0.65"/>
+  <rect x="22" y="18" width="7" height="16" rx="2" fill="#4ec9b0" opacity="0.35"/>
+
+  <!-- Wordmark: "Pe" teal, "Da" orange — monospace feel via letter-spacing -->
+  <text
+    x="38" y="30"
+    font-family="'JetBrains Mono', 'Courier New', monospace"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.5"
+  >
+    <tspan fill="#4ec9b0">Pe</tspan><tspan fill="#ce9178">Da</tspan>
+  </text>
+
+  <!-- Blinking cursor block -->
+  <rect x="103" y="8" width="11" height="20" rx="1.5" fill="#007acc"/>
+</svg>

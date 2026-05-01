@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import LessonCard from '../../components/LessonCard.astro';
+import DomainFilter from '../../components/DomainFilter.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const lessons = (await getCollection('belajar')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const counts = {
+  semua:          lessons.length,
+  sql:            lessons.filter(l => l.data.domain === 'sql').length,
+  python:         lessons.filter(l => l.data.domain === 'python').length,
+  'data-modeling':lessons.filter(l => l.data.domain === 'data-modeling').length,
+  pipeline:       lessons.filter(l => l.data.domain === 'pipeline').length,
+};
+---
+
+<Base
+  title="Belajar"
+  description="Kurikulum data engineering dalam bahasa Indonesia. SQL, Python, Data Modeling, dan Pipeline Architecture."
+>
+
+  <!-- Page header -->
+  <div class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <p class="font-mono text-xs text-tx-muted mb-2">// kurikulum</p>
+    <h1 class="font-sans font-bold text-3xl sm:text-4xl text-tx-primary mb-3">Mulai Belajar</h1>
+    <p class="text-tx-muted max-w-xl">
+      Pelajaran disusun dari yang paling fundamental. Mulai dari mana saja — tapi kalau bingung, mulai dari SQL.
+    </p>
+
+    <!-- Stats bar -->
+    <div class="flex flex-wrap gap-5 mt-8 font-mono text-xs text-tx-muted">
+      <span><span class="text-ac-teal font-semibold">{counts.semua}</span> pelajaran</span>
+      <span><span class="text-ac-blue">{counts.sql}</span> SQL</span>
+      <span><span class="text-ac-teal">{counts.python}</span> Python</span>
+      <span><span class="text-ac-purple">{counts['data-modeling']}</span> Data Modeling</span>
+      <span><span class="text-ac-orange">{counts.pipeline}</span> Pipeline</span>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 pb-24">
+    <hr class="border-border-dim mb-10" />
+
+    <!-- Filter -->
+    <div class="mb-8">
+      <DomainFilter />
+    </div>
+
+    <!-- Lesson grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {lessons.map(lesson => <LessonCard lesson={lesson} base={base} />)}
+    </div>
+
+    {lessons.length === 0 && (
+      <div class="text-center py-20 font-mono text-tx-muted">
+        <p class="text-4xl mb-4">📂</p>
+        <p>Belum ada pelajaran. Segera hadir.</p>
+      </div>
+    )}
+  </div>
+
+</Base>

@@ -1,0 +1,159 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import ProblemCard from '../components/ProblemCard.astro';
+import DomainCard from '../components/DomainCard.astro';
+import FAQItem from '../components/FAQItem.astro';
+import CTABanner from '../components/CTABanner.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const problems = [
+  {
+    quote: 'Semua resource bagus ternyata pakai bahasa Inggris...',
+    highlight: 'Penggerak Data 100% dalam bahasa Indonesia',
+  },
+  {
+    quote: 'Nggak tau harus mulai dari mana — SQL dulu atau Python?',
+    highlight: 'Kurikulum berurutan, mulai dari topik paling sering muncul di interview',
+  },
+  {
+    quote: 'Contoh soalnya selalu Google sama Meta, bukan Gojek...',
+    highlight: 'Semua contoh pakai perusahaan teknologi Indonesia',
+  },
+];
+
+const domains = [
+  {
+    domain:    'sql' as const,
+    title:     'Kueri & Analisis Data',
+    desc:      'Dari SELECT dasar sampai window function dan CTE. Skill ini muncul di hampir semua interview DE.',
+    frequency: '~95% interview',
+    href:      `${base}/belajar?domain=sql`,
+  },
+  {
+    domain:    'python' as const,
+    title:     'Transformasi & Otomasi',
+    desc:      'Baca, bersihkan, dan transformasi data dengan Python murni. Tanpa bergantung pada library besar.',
+    frequency: '~78% interview',
+    href:      `${base}/belajar?domain=python`,
+  },
+  {
+    domain:    'data-modeling' as const,
+    title:     'Desain Skema & Tabel',
+    desc:      'Star schema, slowly changing dimensions, normalisasi. Rancang database yang scalable.',
+    frequency: '~65% interview',
+    href:      `${base}/belajar?domain=data-modeling`,
+  },
+  {
+    domain:    'pipeline' as const,
+    title:     'Arsitektur Data Pipeline',
+    desc:      'ETL vs ELT, batch vs streaming, Airflow, dbt. Pahami bagaimana data berpindah di sistem nyata.',
+    frequency: '~52% interview',
+    href:      `${base}/belajar?domain=pipeline`,
+  },
+];
+
+const faqs = [
+  {
+    question: 'Aku belum punya pengalaman kerja, apakah ini cocok buat aku?',
+    answer:   'Ya, Penggerak Data dirancang khusus untuk pemula. Setiap topik dimulai dari konsep paling dasar dan dibangun secara bertahap. Kamu tidak perlu pengalaman kerja untuk mulai belajar di sini.',
+  },
+  {
+    question: 'Bedanya Penggerak Data sama LeetCode atau platform lain apa?',
+    answer:   'Penggerak Data fokus ke data engineering — bukan software engineering umum. Semua contoh dan soal relevan dengan pekerjaan DE nyata di perusahaan Indonesia. LeetCode bagus untuk algoritma, tapi tidak membahas SQL lanjutan, pipeline design, atau data modeling.',
+  },
+  {
+    question: 'Harus bayar nggak kalau mau akses semua materi?',
+    answer:   'Tidak. Penggerak Data gratis selamanya. Tidak ada paywall, tidak ada trial, tidak ada kartu kredit yang diminta.',
+  },
+  {
+    question: 'Perusahaan mana aja yang dibahas di sini?',
+    answer:   'Semua contoh dan studi kasus menggunakan perusahaan teknologi Indonesia seperti Tokopedia, Gojek, Tiket.com, Bukalapak, Traveloka, dan lainnya. Sengaja dipilih supaya kamu bisa langsung relate.',
+  },
+  {
+    question: 'Berapa lama sampai aku siap interview?',
+    answer:   'Tergantung latar belakangmu. Untuk pemula absolut yang konsisten belajar 1–2 jam per hari, biasanya 3–4 bulan cukup untuk masuk ke tahap interview. Yang sudah punya dasar coding bisa lebih cepat.',
+  },
+];
+---
+
+<Base title="Beranda">
+
+  <!-- Hero -->
+  <Hero />
+
+  <!-- Divider -->
+  <div class="max-w-6xl mx-auto px-6">
+    <hr class="border-border-dim" />
+  </div>
+
+  <!-- Problem section -->
+  <section class="max-w-6xl mx-auto px-6 py-20">
+    <p class="font-mono text-xs text-tx-muted mb-2">// kenapa platform ini ada</p>
+    <h2 class="font-sans font-bold text-2xl sm:text-3xl text-tx-primary mb-3">
+      Kita semua pernah ngerasa ini.
+    </h2>
+    <p class="text-tx-muted mb-10 max-w-xl">
+      Belajar data engineering harusnya nggak terasa asing. Inilah masalah yang kami rancang untuk diselesaikan.
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {problems.map(p => <ProblemCard {...p} />)}
+    </div>
+  </section>
+
+  <!-- Domain cards -->
+  <section id="domain" class="max-w-6xl mx-auto px-6 py-20">
+    <p class="font-mono text-xs text-tx-muted mb-2">// apa yang kamu pelajari</p>
+    <h2 class="font-sans font-bold text-2xl sm:text-3xl text-tx-primary mb-3">
+      Empat domain. Satu platform.
+    </h2>
+    <p class="text-tx-muted mb-10 max-w-xl">
+      Data engineering interview menguji empat area teknis. Kami cover semuanya, dari yang paling sering muncul sampai yang paling sering dilewatkan.
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {domains.map(d => <DomainCard {...d} />)}
+    </div>
+  </section>
+
+  <!-- Why free section -->
+  <section class="max-w-6xl mx-auto px-6 py-20">
+    <div class="bg-bg-surface border border-border-dim rounded-md p-8 sm:p-12 grid grid-cols-1 sm:grid-cols-2 gap-10 items-center">
+      <div>
+        <p class="font-mono text-xs text-tx-muted mb-2">// kenapa gratis?</p>
+        <h2 class="font-sans font-bold text-2xl text-tx-primary mb-4">
+          Akses ke pendidikan berkualitas tidak boleh dibatasi oleh harga.
+        </h2>
+        <p class="text-tx-muted leading-relaxed">
+          Kami percaya bahwa setiap mahasiswa dan fresh graduate Indonesia berhak mendapatkan resource persiapan interview yang serius — tanpa harus merogoh kocek. Penggerak Data gratis, dan akan tetap gratis.
+        </p>
+      </div>
+      <div class="flex flex-col gap-3 font-mono text-sm">
+        {[
+          ['✓', 'ac-teal',   'Tidak ada paywall'],
+          ['✓', 'ac-teal',   'Tidak ada trial berbatas'],
+          ['✓', 'ac-teal',   'Tidak ada kartu kredit'],
+          ['✓', 'ac-teal',   'Tidak ada iklan'],
+        ].map(([icon, color, text]) => (
+          <div class="flex items-center gap-3">
+            <span class={`text-${color}`}>{icon}</span>
+            <span class="text-tx-primary">{text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-3xl mx-auto px-6 py-20">
+    <p class="font-mono text-xs text-tx-muted mb-2">// pertanyaan umum</p>
+    <h2 class="font-sans font-bold text-2xl sm:text-3xl text-tx-primary mb-10">FAQ</h2>
+    <div>
+      {faqs.map(faq => <FAQItem {...faq} />)}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <CTABanner />
+
+</Base>

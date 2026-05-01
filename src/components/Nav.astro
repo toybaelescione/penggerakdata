@@ -1,0 +1,41 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = Astro.url.pathname;
+
+const links = [
+  { href: `${base}/belajar`, label: 'Belajar' },
+];
+---
+
+<header class="sticky top-0 z-50 bg-bg-base/90 backdrop-blur border-b border-border-dim">
+  <nav class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+
+    <!-- Logo -->
+    <a href={`${base}/`} class="flex items-center gap-0 shrink-0" aria-label="Penggerak Data - Beranda">
+      <img src={`${base}/logo.svg`} alt="PeDa logo" width="120" height="30" />
+    </a>
+
+    <!-- Nav links -->
+    <div class="flex items-center gap-6">
+      {links.map(({ href, label }) => (
+        <a
+          href={href}
+          class={`font-mono text-sm transition-colors ${
+            currentPath.startsWith(href)
+              ? 'text-ac-teal'
+              : 'text-tx-muted hover:text-tx-primary'
+          }`}
+        >
+          {label}
+        </a>
+      ))}
+
+      <!-- Coming soon pill -->
+      <span class="hidden sm:flex items-center gap-1.5 font-mono text-xs text-tx-muted border border-border-dim rounded-full px-3 py-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-ac-teal animate-pulse"></span>
+        Latihan — segera
+      </span>
+    </div>
+
+  </nav>
+</header>

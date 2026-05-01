@@ -1,0 +1,27 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<section class="max-w-6xl mx-auto px-6 py-20">
+  <div class="bg-bg-surface border border-ac-blue/30 rounded-lg p-10 sm:p-14 text-center relative overflow-hidden">
+
+    <!-- Background grid decoration -->
+    <div class="absolute inset-0 opacity-5" style="background-image: linear-gradient(#007acc 1px, transparent 1px), linear-gradient(90deg, #007acc 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+    <div class="relative">
+      <p class="font-mono text-xs text-ac-teal mb-4">// sudah siap?</p>
+      <h2 class="font-sans font-extrabold text-3xl sm:text-4xl text-tx-primary mb-4">
+        Mulai perjalananmu hari ini.
+      </h2>
+      <p class="text-tx-muted mb-8 max-w-md mx-auto">
+        Tidak perlu akun. Tidak perlu kartu kredit. Buka pelajaran pertamamu sekarang.
+      </p>
+      <a
+        href={`${base}/belajar`}
+        class="inline-flex items-center gap-2 bg-ac-blue hover:bg-ac-blue/85 transition-colors text-white font-sans font-semibold px-8 py-3.5 rounded-md text-sm"
+      >
+        Buka Kurikulum →
+      </a>
+    </div>
+  </div>
+</section>

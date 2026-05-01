@@ -1,0 +1,53 @@
+---
+interface Props {
+  domain:    'sql' | 'python' | 'data-modeling' | 'pipeline';
+  title:     string;
+  desc:      string;
+  frequency: string;
+  href:      string;
+}
+
+const { domain, title, desc, frequency, href } = Astro.props;
+
+const accent: Record<string, string> = {
+  sql:            'border-ac-blue/30   hover:border-ac-blue   group-hover:text-ac-blue',
+  python:         'border-ac-teal/30   hover:border-ac-teal   group-hover:text-ac-teal',
+  'data-modeling':'border-ac-purple/30 hover:border-ac-purple group-hover:text-ac-purple',
+  pipeline:       'border-ac-orange/30 hover:border-ac-orange group-hover:text-ac-orange',
+};
+
+const iconColor: Record<string, string> = {
+  sql:            'text-ac-blue',
+  python:         'text-ac-teal',
+  'data-modeling':'text-ac-purple',
+  pipeline:       'text-ac-orange',
+};
+
+const icons: Record<string, string> = {
+  sql:            '⬡',
+  python:         '⟨⟩',
+  'data-modeling':'⊞',
+  pipeline:       '⇢',
+};
+---
+
+<a
+  href={href}
+  class={`group block bg-bg-surface border rounded-md p-6 transition-all duration-200 hover:-translate-y-0.5 ${accent[domain]}`}
+>
+  <div class="flex items-start justify-between mb-4">
+    <span class={`font-mono text-2xl ${iconColor[domain]}`}>{icons[domain]}</span>
+    <span class="font-mono text-xs text-tx-muted border border-border-dim rounded-full px-2.5 py-0.5">
+      {frequency}
+    </span>
+  </div>
+
+  <h3 class={`font-sans font-bold text-lg text-tx-primary mb-2 transition-colors ${accent[domain].split(' ')[2]}`}>
+    {title}
+  </h3>
+  <p class="text-tx-muted text-sm leading-relaxed">{desc}</p>
+
+  <p class={`font-mono text-xs mt-5 ${iconColor[domain]}`}>
+    Mulai belajar →
+  </p>
+</a>

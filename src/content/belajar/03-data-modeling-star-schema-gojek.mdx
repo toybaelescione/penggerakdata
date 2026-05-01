@@ -1,0 +1,216 @@
+---
+title: "Star Schema: Rancang Database untuk Analitik"
+description: "Pahami konsep star schema — salah satu pola desain database paling penting di dunia data engineering. Studi kasus: data ride Gojek."
+domain: data-modeling
+difficulty: pemula
+companies: ["Gojek", "Grab", "Tiket.com"]
+readingTime: 14
+publishDate: 2026-05-01
+order: 3
+---
+
+## Dua Dunia Database yang Berbeda
+
+Sebelum masuk ke star schema, penting untuk tahu bahwa ada dua jenis database dengan tujuan yang berbeda:
+
+| | **OLTP** (Transaksional) | **OLAP** (Analitik) |
+|---|---|---|
+| Tujuan | Menyimpan transaksi real-time | Menganalisis data historis |
+| Contoh | Database aplikasi Gojek | Data warehouse tim data Gojek |
+| Query | Banyak write + read kecil | Sedikit query, tapi besar |
+| Desain | Highly normalized | Denormalized (sengaja) |
+
+**Star schema** adalah pola desain untuk database **OLAP** — tempat di mana kamu mau menjawab pertanyaan seperti: *"Berapa total pendapatan driver di Jakarta pada Q1 2024?"*
+
+---
+
+## Apa itu Star Schema?
+
+Star schema terdiri dari dua jenis tabel:
+
+1. **Fact table** — menyimpan **kejadian/transaksi**. Berisi angka-angka yang ingin dianalisis (pendapatan, jumlah trip, durasi).
+2. **Dimension table** — menyimpan **konteks** dari kejadian itu (siapa, di mana, kapan, apa).
+
+Kalau digambar, fact table ada di tengah dan dimension table mengelilinginya seperti bintang — makanya disebut star schema.
+
+```
+          dim_waktu
+              |
+dim_driver — fact_trip — dim_penumpang
+              |
+          dim_lokasi
+```
+
+---
+
+## Studi Kasus: Gojek Rides
+
+Bayangkan kamu diminta merancang data warehouse untuk menyimpan data perjalanan Gojek. Pertanyaan bisnis yang harus bisa dijawab:
+
+- Berapa pendapatan per kota per bulan?
+- Driver mana yang paling produktif di Jakarta?
+- Jam berapa peak hour di Surabaya?
+- Tipe kendaraan apa yang paling banyak di-cancel?
+
+### Fact Table: `fact_trip`
+
+Fact table menyimpan satu baris untuk setiap **perjalanan yang terjadi**:
+
+```sql
+CREATE TABLE fact_trip (
+  trip_id        BIGINT PRIMARY KEY,
+  -- Foreign keys ke dimension tables
+  driver_key     INTEGER REFERENCES dim_driver(driver_key),
+  penumpang_key  INTEGER REFERENCES dim_penumpang(penumpang_key),
+  lokasi_key     INTEGER REFERENCES dim_lokasi(lokasi_key),
+  waktu_key      INTEGER REFERENCES dim_waktu(waktu_key),
+  -- Measures: angka yang ingin dianalisis
+  jarak_km       DECIMAL(6,2),
+  durasi_menit   INTEGER,
+  pendapatan     BIGINT,
+  tip            BIGINT,
+  is_canceled    BOOLEAN
+);
+```
+
+> **Aturan penting:** Fact table hanya boleh berisi **foreign keys** dan **measures** (angka). Jangan simpan nama driver atau nama kota di sini — itu tugasnya dimension table.
+
+### Dimension Table: `dim_driver`
+
+```sql
+CREATE TABLE dim_driver (
+  driver_key     INTEGER PRIMARY KEY,  -- surrogate key, bukan ID asli
+  driver_id      VARCHAR(20),          -- ID asli dari sistem operasional
+  nama           VARCHAR(100),
+  tipe_kendaraan VARCHAR(50),          -- 'motor', 'mobil'
+  kota_domisili  VARCHAR(50),
+  bergabung_sejak DATE,
+  is_aktif       BOOLEAN
+);
+```
+
+### Dimension Table: `dim_penumpang`
+
+```sql
+CREATE TABLE dim_penumpang (
+  penumpang_key  INTEGER PRIMARY KEY,
+  penumpang_id   VARCHAR(20),
+  nama           VARCHAR(100),
+  kota           VARCHAR(50),
+  tgl_daftar     DATE
+);
+```
+
+### Dimension Table: `dim_lokasi`
+
+```sql
+CREATE TABLE dim_lokasi (
+  lokasi_key     INTEGER PRIMARY KEY,
+  kecamatan      VARCHAR(100),
+  kota           VARCHAR(50),
+  provinsi       VARCHAR(50),
+  zona           VARCHAR(20)   -- 'pusat', 'pinggiran', 'luar_kota'
+);
+```
+
+### Dimension Table: `dim_waktu`
+
+Tabel waktu adalah dimension yang paling sering dipakai. Tidak perlu generate secara real-time — biasanya di-pre-populate untuk beberapa tahun ke depan.
+
+```sql
+CREATE TABLE dim_waktu (
+  waktu_key      INTEGER PRIMARY KEY,  -- contoh: 20240115 untuk 15 Jan 2024
+  tanggal        DATE,
+  tahun          SMALLINT,
+  kuartal        SMALLINT,
+  bulan          SMALLINT,
+  nama_bulan     VARCHAR(20),
+  minggu         SMALLINT,
+  hari_dalam_minggu SMALLINT,  -- 1=Senin, 7=Minggu
+  nama_hari      VARCHAR(10),
+  jam            SMALLINT,
+  is_weekend     BOOLEAN,
+  is_libur_nasional BOOLEAN
+);
+```
+
+---
+
+## Contoh Query Analitik
+
+Setelah star schema terbentuk, query analitik jadi sangat mudah ditulis:
+
+**Pendapatan per kota per bulan:**
+```sql
+SELECT
+  l.kota,
+  w.tahun,
+  w.nama_bulan,
+  SUM(f.pendapatan) AS total_pendapatan,
+  COUNT(*)          AS total_trip
+FROM fact_trip f
+JOIN dim_lokasi l ON f.lokasi_key = l.lokasi_key
+JOIN dim_waktu  w ON f.waktu_key  = w.waktu_key
+WHERE f.is_canceled = FALSE
+GROUP BY l.kota, w.tahun, w.nama_bulan
+ORDER BY w.tahun, w.bulan, total_pendapatan DESC;
+```
+
+**Top 10 driver berdasarkan pendapatan di Jakarta:**
+```sql
+SELECT
+  d.nama,
+  d.tipe_kendaraan,
+  SUM(f.pendapatan) AS total_pendapatan,
+  COUNT(*)          AS total_trip,
+  AVG(f.jarak_km)   AS rata_jarak
+FROM fact_trip f
+JOIN dim_driver d  ON f.driver_key  = d.driver_key
+JOIN dim_lokasi l  ON f.lokasi_key  = l.lokasi_key
+WHERE l.kota = 'Jakarta'
+  AND f.is_canceled = FALSE
+GROUP BY d.driver_key, d.nama, d.tipe_kendaraan
+ORDER BY total_pendapatan DESC
+LIMIT 10;
+```
+
+---
+
+## Kenapa Tidak Pakai Satu Tabel Besar?
+
+Pertanyaan yang wajar. Kenapa tidak simpan semua kolom dalam satu tabel `trip` saja?
+
+```sql
+-- JANGAN lakukan ini di data warehouse:
+CREATE TABLE semua_dalam_satu (
+  trip_id, driver_nama, driver_kota, driver_kendaraan,
+  penumpang_nama, penumpang_kota,
+  lokasi_kecamatan, lokasi_kota, lokasi_provinsi,
+  tanggal, tahun, bulan, hari,
+  jarak, durasi, pendapatan, ...
+);
+```
+
+Masalahnya:
+1. **Redundansi masif** — nama driver disimpan di jutaan baris trip
+2. **Update mahal** — kalau driver pindah kota, harus update jutaan baris
+3. **Query lambat** — tabel sangat lebar dan tidak efisien untuk analitik kolumnar
+4. **Tidak fleksibel** — susah menambahkan atribut baru tanpa mengubah skema utama
+
+---
+
+## Latihan
+
+1. Tambahkan tabel `dim_promo` ke star schema di atas. Kolom apa yang perlu ada?
+2. Modifikasi `fact_trip` untuk menyimpan informasi promo yang dipakai (foreign key ke `dim_promo`)
+3. Tulis query untuk menghitung: berapa trip yang menggunakan promo di hari weekend vs weekday?
+
+---
+
+## Poin Penting
+
+- Star schema: **fact table** di tengah, dikelilingi **dimension tables**
+- Fact table = kejadian + angka yang dianalisis (measures)
+- Dimension table = konteks (siapa, di mana, kapan, apa)
+- `dim_waktu` adalah dimension yang hampir selalu ada dan sangat berguna
+- Star schema sengaja denormalized supaya query analitik lebih cepat

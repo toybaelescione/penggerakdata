@@ -1,0 +1,47 @@
+---
+const filters = [
+  { value: 'semua',          label: 'Semua' },
+  { value: 'sql',            label: 'SQL' },
+  { value: 'python',         label: 'Python' },
+  { value: 'data-modeling',  label: 'Data Modeling' },
+  { value: 'pipeline',       label: 'Pipeline' },
+];
+---
+
+<div class="flex flex-wrap gap-2" id="domain-filters">
+  {filters.map(({ value, label }) => (
+    <button
+      data-filter={value}
+      class={`font-mono text-xs border rounded-full px-4 py-1.5 transition-all duration-150 cursor-pointer
+        ${value === 'semua'
+          ? 'bg-ac-blue/15 border-ac-blue text-ac-blue'
+          : 'border-border-dim text-tx-muted hover:border-tx-muted hover:text-tx-primary'
+        }`}
+    >
+      {label}
+    </button>
+  ))}
+</div>
+
+<script>
+  const btns  = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-domain]');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter ?? 'semua';
+
+      btns.forEach(b => {
+        b.classList.remove('bg-ac-blue/15', 'border-ac-blue', 'text-ac-blue');
+        b.classList.add('border-border-dim', 'text-tx-muted');
+      });
+      btn.classList.add('bg-ac-blue/15', 'border-ac-blue', 'text-ac-blue');
+      btn.classList.remove('border-border-dim', 'text-tx-muted');
+
+      cards.forEach(card => {
+        const show = filter === 'semua' || card.dataset.domain === filter;
+        card.style.display = show ? '' : 'none';
+      });
+    });
+  });
+</script>

@@ -1,0 +1,58 @@
+---
+import CodeWindow from './CodeWindow.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<section class="max-w-6xl mx-auto px-6 pt-20 pb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+  <!-- Left: copy -->
+  <div>
+    <p class="font-mono text-xs text-tx-comment mb-4 animate-fade-up opacity-0">
+      <span class="text-tx-muted">// </span>untuk engineer data Indonesia
+    </p>
+
+    <h1 class="font-sans font-extrabold text-4xl sm:text-5xl leading-tight mb-6 animate-fade-up opacity-0 delay-1">
+      <span class="text-tx-primary">Mulai dari nol.</span><br />
+      <span class="text-ac-teal">Masuk ke data.</span>
+    </h1>
+
+    <p class="text-tx-muted text-lg leading-relaxed mb-8 max-w-lg animate-fade-up opacity-0 delay-2">
+      Pelajari SQL, Python, dan arsitektur data dengan contoh nyata dari perusahaan seperti
+      <span class="text-tx-primary">Tokopedia</span>,
+      <span class="text-tx-primary">Gojek</span>, dan
+      <span class="text-tx-primary">Tiket.com</span>.
+      Gratis. Dalam bahasa Indonesia.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 animate-fade-up opacity-0 delay-3">
+      <a
+        href={`${base}/belajar`}
+        class="inline-flex items-center gap-2 bg-ac-blue hover:bg-ac-blue/85 transition-colors text-white font-sans font-semibold px-6 py-3 rounded-md text-sm"
+      >
+        Mulai Belajar
+        <span aria-hidden="true">→</span>
+      </a>
+      <a
+        href="#domain"
+        class="font-mono text-sm text-tx-muted hover:text-tx-primary transition-colors"
+      >
+        Lihat kurikulum ↓
+      </a>
+    </div>
+
+    <!-- Trust pills -->
+    <div class="flex flex-wrap gap-3 mt-10 animate-fade-up opacity-0 delay-4">
+      {['Gratis selamanya', 'Bahasa Indonesia', 'Contoh perusahaan lokal', 'Tanpa registrasi'].map(pill => (
+        <span class="font-mono text-xs text-tx-comment border border-tx-comment/25 rounded-full px-3 py-1">
+          ✓ {pill}
+        </span>
+      ))}
+    </div>
+  </div>
+
+  <!-- Right: fake VS Code window -->
+  <div class="hidden lg:block animate-fade-up opacity-0 delay-3">
+    <CodeWindow />
+  </div>
+
+</section>

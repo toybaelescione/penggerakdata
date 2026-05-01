@@ -1,0 +1,213 @@
+---
+title: "Transformasi CSV dengan Python Murni"
+description: "Pelajari cara membaca, memproses, dan mentransformasi data CSV menggunakan Python standar — tanpa pandas. Studi kasus: data driver Gojek."
+domain: python
+difficulty: pemula
+companies: ["Gojek", "Grab"]
+readingTime: 15
+publishDate: 2026-05-01
+order: 2
+---
+
+## Kenapa Belajar Tanpa Pandas?
+
+Pandas memang populer, tapi di interview data engineering — terutama di Gojek, Tokopedia, dan perusahaan dengan skala besar — kamu sering diminta untuk:
+
+- Menulis ETL script yang ringan dan tidak bergantung pada library besar
+- Memproses file di lingkungan yang tidak punya pandas terinstall
+- Membuktikan kamu **benar-benar mengerti Python**, bukan hanya hafal API pandas
+
+Modul `csv` sudah ada di Python standar. Tidak perlu install apapun.
+
+---
+
+## Setup: Data Driver Gojek
+
+Bayangkan kamu di tim data engineering Gojek. Kamu mendapat file `driver_data.csv` yang berisi performa driver minggu ini:
+
+```
+driver_id,nama,kota,total_trip,rating,pendapatan
+D001,Budi Santoso,Jakarta,87,4.8,2340000
+D002,Andi Wijaya,Surabaya,62,4.5,1680000
+D003,Rini Kusuma,Bandung,95,4.9,2580000
+D004,Hendra Putra,Jakarta,41,3.9,1110000
+D005,Sari Dewi,Medan,78,4.7,2100000
+D006,Agus Salim,Jakarta,55,4.2,1490000
+```
+
+Tugasmu: baca file ini, filter driver dengan rating di bawah 4.5, dan buat laporan ringkas.
+
+---
+
+## Membaca File CSV
+
+```python
+import csv
+
+with open('driver_data.csv', newline='', encoding='utf-8') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        print(row)
+```
+
+`csv.DictReader` membaca setiap baris sebagai dictionary — key-nya adalah nama kolom dari header. Hasilnya:
+
+```
+{'driver_id': 'D001', 'nama': 'Budi Santoso', 'kota': 'Jakarta', ...}
+{'driver_id': 'D002', 'nama': 'Andi Wijaya', 'kota': 'Surabaya', ...}
+...
+```
+
+> **Perhatikan:** Semua nilai dari CSV dibaca sebagai **string**. Kalau mau operasi numerik, kamu harus convert dulu dengan `int()` atau `float()`.
+
+---
+
+## Memuat Semua Data ke Memori
+
+Untuk data yang tidak terlalu besar, simpan semua baris ke dalam list:
+
+```python
+import csv
+
+def baca_data(filepath: str) -> list[dict]:
+    with open(filepath, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        return list(reader)
+
+driver_data = baca_data('driver_data.csv')
+print(f"Total driver: {len(driver_data)}")
+```
+
+---
+
+## Transformasi: Filter dan Konversi Tipe
+
+Sekarang kita filter driver dengan rating di bawah 4.5 — ingat, nilai dari CSV masih string, jadi harus di-convert ke `float` dulu:
+
+```python
+def filter_driver_perlu_perhatian(data: list[dict]) -> list[dict]:
+    hasil = []
+    for driver in data:
+        rating = float(driver['rating'])
+        if rating < 4.5:
+            hasil.append({
+                'driver_id':  driver['driver_id'],
+                'nama':       driver['nama'],
+                'kota':       driver['kota'],
+                'rating':     rating,
+                'total_trip': int(driver['total_trip']),
+            })
+    return hasil
+
+driver_bermasalah = filter_driver_perlu_perhatian(driver_data)
+```
+
+---
+
+## Agregasi Sederhana: Hitung per Kota
+
+Hitung rata-rata rating dan total trip per kota, tanpa pandas:
+
+```python
+from collections import defaultdict
+
+def ringkasan_per_kota(data: list[dict]) -> dict:
+    kota_data: dict = defaultdict(lambda: {'total_trip': 0, 'total_rating': 0.0, 'jumlah_driver': 0})
+
+    for driver in data:
+        kota = driver['kota']
+        kota_data[kota]['total_trip']    += int(driver['total_trip'])
+        kota_data[kota]['total_rating']  += float(driver['rating'])
+        kota_data[kota]['jumlah_driver'] += 1
+
+    ringkasan = {}
+    for kota, stats in kota_data.items():
+        ringkasan[kota] = {
+            'jumlah_driver': stats['jumlah_driver'],
+            'total_trip':    stats['total_trip'],
+            'rata_rating':   round(stats['total_rating'] / stats['jumlah_driver'], 2),
+        }
+    return ringkasan
+
+print(ringkasan_per_kota(driver_data))
+```
+
+Output:
+```
+{
+  'Jakarta': {'jumlah_driver': 3, 'total_trip': 183, 'rata_rating': 4.3},
+  'Surabaya': {'jumlah_driver': 1, 'total_trip': 62, 'rata_rating': 4.5},
+  'Bandung': {'jumlah_driver': 1, 'total_trip': 95, 'rata_rating': 4.9},
+  'Medan': {'jumlah_driver': 1, 'total_trip': 78, 'rata_rating': 4.7}
+}
+```
+
+---
+
+## Menulis Hasil ke CSV Baru
+
+Setelah transformasi, simpan hasilnya ke file baru:
+
+```python
+def tulis_csv(data: list[dict], output_path: str):
+    if not data:
+        return
+    fieldnames = data[0].keys()
+    with open(output_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
+
+tulis_csv(driver_bermasalah, 'driver_perlu_perhatian.csv')
+```
+
+---
+
+## Menggabungkan Semuanya
+
+```python
+import csv
+from collections import defaultdict
+
+def jalankan_pipeline(input_path: str, output_path: str):
+    # 1. Baca
+    with open(input_path, newline='', encoding='utf-8') as f:
+        data = list(csv.DictReader(f))
+
+    # 2. Transform
+    hasil = [
+        {**d, 'rating': float(d['rating']), 'total_trip': int(d['total_trip'])}
+        for d in data
+        if float(d['rating']) < 4.5
+    ]
+
+    # 3. Tulis
+    if hasil:
+        with open(output_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=hasil[0].keys())
+            writer.writeheader()
+            writer.writerows(hasil)
+
+    print(f"Selesai. {len(hasil)} driver ditulis ke {output_path}")
+
+jalankan_pipeline('driver_data.csv', 'driver_perlu_perhatian.csv')
+```
+
+Pola **baca → transform → tulis** ini adalah inti dari hampir semua ETL script sederhana.
+
+---
+
+## Latihan
+
+1. Modifikasi fungsi filter supaya bisa menerima threshold rating sebagai parameter (bukan hardcoded `4.5`)
+2. Tambahkan kolom `pendapatan_per_trip` ke setiap baris hasil (hitung dari `pendapatan / total_trip`)
+3. Urutkan hasil berdasarkan `rating` dari yang terendah ke tertinggi tanpa menggunakan `sorted(key=...)` pandas-style — gunakan `list.sort()`
+
+---
+
+## Poin Penting
+
+- `csv.DictReader` membaca CSV sebagai list of dict — cara paling mudah untuk diproses
+- Semua nilai dari CSV adalah string — selalu convert ke `int()` atau `float()` sebelum operasi numerik
+- Pola ETL sederhana: baca → transform → tulis
+- `defaultdict` dari `collections` sangat berguna untuk agregasi tanpa pandas

@@ -1,0 +1,21 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-border-dim mt-24">
+  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+
+    <div class="flex items-center gap-3">
+      <img src={`${base}/logo.svg`} alt="PeDa" width="80" height="20" />
+      <span class="text-tx-muted text-sm font-mono">|</span>
+      <span class="font-mono text-xs text-tx-muted italic">Mulai dari nol. Masuk ke data.</span>
+    </div>
+
+    <div class="font-mono text-xs text-tx-muted text-center sm:text-right">
+      <p>Gratis selamanya. Dibuat untuk engineer Indonesia.</p>
+      <p class="mt-1">© {year} Penggerak Data</p>
+    </div>
+
+  </div>
+</footer>

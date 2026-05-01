@@ -1,0 +1,20 @@
+---
+interface Props {
+  domain: 'sql' | 'python' | 'data-modeling' | 'pipeline';
+}
+
+const { domain } = Astro.props;
+
+const config = {
+  sql:            { label: 'SQL',           color: 'text-ac-blue   border-ac-blue/40'   },
+  python:         { label: 'Python',        color: 'text-ac-teal   border-ac-teal/40'   },
+  'data-modeling':{ label: 'Data Modeling', color: 'text-ac-purple border-ac-purple/40' },
+  pipeline:       { label: 'Pipeline',      color: 'text-ac-orange border-ac-orange/40' },
+};
+
+const { label, color } = config[domain];
+---
+
+<span class={`font-mono text-xs border rounded px-2 py-0.5 ${color}`}>
+  {label}
+</span>

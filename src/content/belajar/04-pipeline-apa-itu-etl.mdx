@@ -1,0 +1,185 @@
+---
+title: "Apa itu ETL? Fondasi Data Pipeline"
+description: "Pahami konsep Extract, Transform, Load — pola fundamental yang mendasari hampir semua sistem data engineering modern. Dengan contoh alur data nyata."
+domain: pipeline
+difficulty: pemula
+companies: ["Tokopedia", "Gojek", "Tiket.com", "Traveloka"]
+readingTime: 13
+publishDate: 2026-05-01
+order: 4
+---
+
+## Data Engineering dalam Satu Kalimat
+
+Tugas seorang data engineer, sangat disederhanakan, adalah memastikan data bisa **berpindah dari satu tempat ke tempat lain dengan benar dan tepat waktu**.
+
+Sumber data ada di mana-mana: database aplikasi, log server, API pihak ketiga, file upload pengguna. Tujuannya juga beragam: data warehouse untuk analitik, data lake untuk machine learning, dashboard untuk manajemen.
+
+**ETL** adalah pola yang mengatur perpindahan ini.
+
+---
+
+## E — Extract (Ambil)
+
+Langkah pertama adalah mengambil data dari **sumber aslinya**.
+
+Sumber bisa berupa:
+- Database transaksi (PostgreSQL, MySQL) — data pesanan, data user
+- API eksternal — data cuaca, data harga pasar
+- File flat — CSV, JSON, Parquet dari partner bisnis
+- Streaming events — klik pengguna, log aplikasi real-time
+
+```python
+# Contoh: Extract dari database PostgreSQL
+import psycopg2
+
+def extract_pesanan_baru(conn, last_updated: str) -> list[dict]:
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT pesanan_id, user_id, total_harga, status, created_at
+        FROM pesanan
+        WHERE created_at > %s
+        ORDER BY created_at
+    """, (last_updated,))
+
+    columns = [desc[0] for desc in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+```
+
+> **Incremental vs Full Load:** Di contoh di atas, kita hanya mengambil data yang lebih baru dari `last_updated` — ini disebut *incremental extract*. Kalau kamu mengambil seluruh tabel setiap kali, itu *full load*. Untuk tabel dengan miliaran baris, incremental load jauh lebih efisien.
+
+---
+
+## T — Transform (Olah)
+
+Data dari sumber biasanya tidak siap dipakai langsung. Transform adalah tahap di mana kamu **membersihkan, mengubah bentuk, dan menggabungkan** data.
+
+Transformasi yang umum:
+
+```python
+from datetime import datetime
+
+def transform_pesanan(raw_data: list[dict]) -> list[dict]:
+    hasil = []
+    for row in raw_data:
+        # Skip baris yang tidak lengkap
+        if not row.get('user_id') or not row.get('total_harga'):
+            continue
+
+        # Normalisasi tipe data
+        total_harga = int(row['total_harga'])
+
+        # Kategorisasi bisnis
+        if total_harga >= 1_000_000:
+            segmen = 'premium'
+        elif total_harga >= 100_000:
+            segmen = 'reguler'
+        else:
+            segmen = 'kecil'
+
+        # Ekstrak komponen waktu untuk dimensi waktu
+        created_at = datetime.fromisoformat(str(row['created_at']))
+
+        hasil.append({
+            'pesanan_id':  row['pesanan_id'],
+            'user_id':     row['user_id'],
+            'total_harga': total_harga,
+            'segmen':      segmen,
+            'status':      row['status'].lower().strip(),
+            'tahun':       created_at.year,
+            'bulan':       created_at.month,
+            'tanggal':     created_at.date().isoformat(),
+        })
+
+    return hasil
+```
+
+---
+
+## L — Load (Simpan)
+
+Setelah data bersih, simpan ke **tujuan akhir** — biasanya data warehouse seperti BigQuery, Snowflake, atau Redshift.
+
+```python
+def load_ke_warehouse(data: list[dict], target_table: str, conn):
+    if not data:
+        return
+
+    cursor = conn.cursor()
+    kolom = ', '.join(data[0].keys())
+    placeholder = ', '.join(['%s'] * len(data[0]))
+
+    query = f"INSERT INTO {target_table} ({kolom}) VALUES ({placeholder}) ON CONFLICT (pesanan_id) DO NOTHING"
+
+    cursor.executemany(query, [tuple(row.values()) for row in data])
+    conn.commit()
+    print(f"{cursor.rowcount} baris berhasil di-load ke {target_table}")
+```
+
+---
+
+## Menggabungkan ETL Pipeline
+
+```python
+def jalankan_etl(sumber_conn, target_conn, last_updated: str):
+    print("1. Extract...")
+    raw = extract_pesanan_baru(sumber_conn, last_updated)
+    print(f"   {len(raw)} baris diambil")
+
+    print("2. Transform...")
+    bersih = transform_pesanan(raw)
+    print(f"   {len(bersih)} baris setelah transformasi")
+
+    print("3. Load...")
+    load_ke_warehouse(bersih, 'dwh.fact_pesanan', target_conn)
+    print("   Selesai.")
+```
+
+---
+
+## ETL vs ELT: Apa Bedanya?
+
+Di era data warehouse modern (BigQuery, Snowflake), muncul pola baru: **ELT**.
+
+| | ETL | ELT |
+|---|---|---|
+| Urutan | Extract → Transform → Load | Extract → Load → Transform |
+| Transform dilakukan | Di server/script (sebelum masuk warehouse) | Di dalam warehouse (pakai SQL) |
+| Tools | Python script, Apache Spark | dbt, SQL di BigQuery/Snowflake |
+| Cocok untuk | Data sensitif, transformasi kompleks | Data warehouse modern yang powerful |
+
+**Kapan pakai ETL:** Data perlu dianonimkan sebelum masuk warehouse, atau transformasinya membutuhkan logika Python yang tidak bisa diekspresikan dalam SQL.
+
+**Kapan pakai ELT:** Data warehouse sudah cukup powerful, tim lebih nyaman dengan SQL, dan kamu ingin transformasi bisa di-version control dengan dbt.
+
+---
+
+## Tools yang Dipakai di Perusahaan Indonesia
+
+| Tool | Fungsi | Dipakai di |
+|---|---|---|
+| **Apache Airflow** | Orkestrasi pipeline (scheduler, dependency antar task) | Tokopedia, Gojek, Traveloka |
+| **dbt** | Transformasi data dengan SQL, version control | Tiket.com, startup fintech |
+| **Apache Spark** | Proses data skala besar (terabyte) | Gojek, perusahaan besar |
+| **Kafka** | Streaming data real-time | Gojek, Tokopedia |
+| **BigQuery** | Cloud data warehouse (Google Cloud) | Banyak startup |
+
+Kamu tidak perlu hafal semua tool ini sekarang. Yang penting: pahami **konsep** ETL/ELT dulu — tool-nya bisa dipelajari belakangan.
+
+---
+
+## Latihan
+
+1. Modifikasi fungsi `transform_pesanan` untuk menambahkan kolom `is_weekend` — `True` kalau `created_at` jatuh di hari Sabtu atau Minggu
+2. Tambahkan error handling di fungsi `load_ke_warehouse`: kalau koneksi gagal, cetak pesan error dan return tanpa crash
+3. Gambar (di kertas) alur ETL sederhana untuk kasus ini: *"Setiap jam, ambil data booking baru dari database Tiket.com dan simpan ke data warehouse"*
+
+---
+
+## Poin Penting
+
+- **ETL** = Extract (ambil dari sumber) → Transform (bersihkan dan ubah) → Load (simpan ke tujuan)
+- **ELT** adalah variasi modern: load dulu, transform di dalam warehouse pakai SQL
+- Incremental load lebih efisien daripada full load untuk tabel besar
+- Airflow mengatur *kapan* pipeline berjalan dan urutan task-nya
+- Konsep ini adalah fondasi dari pekerjaan data engineer sehari-hari

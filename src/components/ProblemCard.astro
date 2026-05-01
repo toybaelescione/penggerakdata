@@ -1,0 +1,21 @@
+---
+interface Props {
+  quote: string;
+  highlight: string;
+}
+const { quote, highlight } = Astro.props;
+---
+
+<div class="bg-bg-surface border border-border-dim rounded-md p-6 relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-200">
+  <!-- Left accent bar -->
+  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-ac-teal/50 group-hover:bg-ac-teal transition-colors"></div>
+
+  <p class="font-mono text-sm text-tx-comment leading-relaxed">
+    <span class="text-tx-muted">// </span>{quote}
+  </p>
+  {highlight && (
+    <p class="font-mono text-xs text-tx-muted mt-3 border-t border-border-dim pt-3">
+      → <span class="text-ac-orange">{highlight}</span>
+    </p>
+  )}
+</div>

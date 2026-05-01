@@ -1,0 +1,77 @@
+---
+import Base from './Base.astro';
+import Tag from '../components/Tag.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  lesson: CollectionEntry<'belajar'>;
+}
+
+const { lesson } = Astro.props;
+const { title, description, domain, difficulty, companies, readingTime } = lesson.data;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const domainLabel: Record<string, string> = {
+  sql:            'SQL',
+  python:         'Python',
+  'data-modeling':'Data Modeling',
+  pipeline:       'Pipeline',
+};
+
+const difficultyColor: Record<string, string> = {
+  pemula:   'text-ac-teal   border-ac-teal/40',
+  menengah: 'text-ac-yellow border-ac-yellow/40',
+  mahir:    'text-ac-orange border-ac-orange/40',
+};
+---
+
+<Base title={title} description={description}>
+  <div class="max-w-3xl mx-auto px-6 py-16">
+
+    <!-- Breadcrumb -->
+    <nav class="font-mono text-xs text-tx-muted mb-8 flex items-center gap-2">
+      <a href={`${base}/belajar`} class="hover:text-ac-teal transition-colors">Belajar</a>
+      <span>/</span>
+      <span class="text-tx-comment">{domainLabel[domain]}</span>
+      <span>/</span>
+      <span class="text-tx-primary truncate">{title}</span>
+    </nav>
+
+    <!-- Meta tags -->
+    <div class="flex flex-wrap items-center gap-2 mb-6">
+      <Tag domain={domain} />
+      <span class={`font-mono text-xs border rounded px-2 py-0.5 ${difficultyColor[difficulty] ?? ''}`}>
+        {difficulty}
+      </span>
+      {companies.map((c: string) => (
+        <span class="font-mono text-xs text-tx-muted border border-border-dim rounded px-2 py-0.5">{c}</span>
+      ))}
+      <span class="font-mono text-xs text-tx-muted ml-auto">~{readingTime} menit</span>
+    </div>
+
+    <!-- Title -->
+    <h1 class="font-sans font-bold text-3xl text-tx-primary mb-3 leading-snug">{title}</h1>
+    <p class="text-tx-muted mb-12 text-lg leading-relaxed">{description}</p>
+
+    <hr class="border-border-dim mb-12" />
+
+    <!-- Lesson body -->
+    <article class="lesson-content">
+      <slot />
+    </article>
+
+    <hr class="border-border-dim mt-16 mb-10" />
+
+    <!-- Lesson footer nav -->
+    <div class="flex justify-between items-center">
+      <a
+        href={`${base}/belajar`}
+        class="font-mono text-sm text-tx-muted hover:text-ac-teal transition-colors flex items-center gap-2"
+      >
+        ← Kembali ke Kurikulum
+      </a>
+    </div>
+
+  </div>
+</Base>

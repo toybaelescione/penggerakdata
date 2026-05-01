@@ -1,0 +1,127 @@
+---
+// Decorative fake VS Code window shown in the Hero section.
+// Content is static — purely visual, no interactivity needed.
+---
+
+<div class="rounded-lg border border-border-dim bg-bg-surface overflow-hidden shadow-2xl shadow-black/50 font-mono text-sm leading-relaxed">
+
+  <!-- Title bar -->
+  <div class="flex items-center gap-2 px-4 py-2.5 bg-bg-elevated border-b border-border-dim">
+    <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
+    <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
+    <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
+    <span class="ml-3 text-xs text-tx-muted">analisis_pesanan.sql</span>
+  </div>
+
+  <!-- Code body -->
+  <div class="px-4 py-4 overflow-x-auto">
+    <table class="w-full border-collapse">
+      <tbody>
+
+        {/* Line 1 */}
+        <tr class="group">
+          <td class="pr-5 text-tx-muted select-none w-6 text-right align-top">1</td>
+          <td><span class="text-ac-purple">SELECT</span></td>
+        </tr>
+
+        {/* Line 2 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">2</td>
+          <td class="pl-6">
+            <span class="text-ac-teal">user_id</span>
+            <span class="text-tx-muted">,</span>
+          </td>
+        </tr>
+
+        {/* Line 3 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">3</td>
+          <td class="pl-6">
+            <span class="text-ac-yellow">COUNT</span>
+            <span class="text-tx-primary">(</span>
+            <span class="text-tx-primary">*</span>
+            <span class="text-tx-primary">)</span>
+            <span class="text-ac-purple"> AS </span>
+            <span class="text-ac-teal">total_pesanan</span>
+            <span class="text-tx-muted">,</span>
+          </td>
+        </tr>
+
+        {/* Line 4 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">4</td>
+          <td class="pl-6">
+            <span class="text-ac-yellow">SUM</span>
+            <span class="text-tx-primary">(</span>
+            <span class="text-ac-teal">total_harga</span>
+            <span class="text-tx-primary">)</span>
+            <span class="text-ac-purple"> AS </span>
+            <span class="text-ac-teal">total_revenue</span>
+          </td>
+        </tr>
+
+        {/* Line 5 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">5</td>
+          <td>
+            <span class="text-ac-purple">FROM</span>
+            <span class="text-tx-primary"> tokopedia.</span>
+            <span class="text-ac-teal">pesanan</span>
+          </td>
+        </tr>
+
+        {/* Line 6 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">6</td>
+          <td>
+            <span class="text-ac-purple">WHERE</span>
+            <span class="text-ac-teal"> status</span>
+            <span class="text-tx-primary"> = </span>
+            <span class="text-ac-orange">'selesai'</span>
+          </td>
+        </tr>
+
+        {/* Line 7 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">7</td>
+          <td class="pl-4">
+            <span class="text-ac-purple">AND </span>
+            <span class="text-ac-teal">created_at</span>
+            <span class="text-tx-primary"> &gt;= </span>
+            <span class="text-ac-orange">'2024-01-01'</span>
+          </td>
+        </tr>
+
+        {/* Line 8 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">8</td>
+          <td>
+            <span class="text-ac-purple">GROUP BY</span>
+            <span class="text-tx-primary"> 1</span>
+          </td>
+        </tr>
+
+        {/* Line 9 */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">9</td>
+          <td>
+            <span class="text-ac-purple">ORDER BY</span>
+            <span class="text-ac-teal"> total_revenue </span>
+            <span class="text-ac-purple">DESC</span>
+            <span class="text-tx-muted">;</span>
+          </td>
+        </tr>
+
+        {/* Line 10 — empty with blinking cursor */}
+        <tr>
+          <td class="pr-5 text-tx-muted select-none text-right align-top">10</td>
+          <td>
+            <span class="inline-block w-2 h-4 bg-ac-blue animate-blink align-middle"></span>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+</div>

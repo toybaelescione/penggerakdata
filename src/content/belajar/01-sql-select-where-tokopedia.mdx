@@ -1,0 +1,127 @@
+---
+title: "SELECT dan WHERE: Kueri Pertamamu"
+description: "Pelajari cara mengambil dan menyaring data dari database menggunakan perintah SQL paling dasar — dengan studi kasus tabel transaksi Tokopedia."
+domain: sql
+difficulty: pemula
+companies: ["Tokopedia", "Bukalapak"]
+readingTime: 12
+publishDate: 2026-05-01
+order: 1
+---
+
+## Apa itu SQL?
+
+SQL (*Structured Query Language*) adalah bahasa yang dipakai untuk berkomunikasi dengan database. Kalau database adalah sebuah gudang berisi jutaan baris data, SQL adalah cara kamu bilang: *"Hei, tunjukkan semua data yang seperti ini."*
+
+Di hampir semua perusahaan teknologi Indonesia — Tokopedia, Gojek, Tiket — data engineer menghabiskan banyak waktu menulis SQL untuk menganalisis data, membersihkan data, dan membangun pipeline.
+
+> **Kenapa mulai dari SQL?** Karena SQL muncul di ~95% interview data engineering. Ini adalah skill yang paling tidak bisa dilewatkan.
+
+---
+
+## Setup: Bayangkan Kamu di Tokopedia
+
+Kita akan pakai tabel `pesanan` yang menyimpan semua transaksi di Tokopedia. Strukturnya kira-kira seperti ini:
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `pesanan_id` | INTEGER | ID unik setiap transaksi |
+| `user_id` | INTEGER | ID pembeli |
+| `penjual_id` | INTEGER | ID toko / penjual |
+| `total_harga` | BIGINT | Total harga transaksi (dalam Rupiah) |
+| `status` | VARCHAR | Status pesanan: `'menunggu'`, `'diproses'`, `'dikirim'`, `'selesai'`, `'dibatalkan'` |
+| `created_at` | TIMESTAMP | Waktu transaksi dibuat |
+
+---
+
+## Perintah SELECT
+
+`SELECT` dipakai untuk menentukan **kolom mana** yang ingin kamu ambil dari tabel.
+
+```sql
+SELECT pesanan_id, user_id, total_harga
+FROM pesanan;
+```
+
+Ini akan mengembalikan **semua baris** dari tabel `pesanan`, tapi hanya kolom `pesanan_id`, `user_id`, dan `total_harga`.
+
+Kalau mau ambil semua kolom sekaligus, pakai `*`:
+
+```sql
+SELECT *
+FROM pesanan;
+```
+
+> **Catatan penting:** Di dunia nyata, hindari `SELECT *` di production. Kalau tabelnya punya 50 kolom dan miliaran baris, kamu akan mengambil data yang tidak perlu dan memperlambat query.
+
+---
+
+## Perintah WHERE
+
+`WHERE` dipakai untuk **menyaring baris** berdasarkan kondisi tertentu. Tanpa `WHERE`, kamu mengambil semua data di tabel.
+
+Contoh: ambil semua pesanan yang sudah selesai.
+
+```sql
+SELECT pesanan_id, user_id, total_harga
+FROM pesanan
+WHERE status = 'selesai';
+```
+
+### Operator yang sering dipakai
+
+| Operator | Arti | Contoh |
+|---|---|---|
+| `=` | Sama dengan | `WHERE status = 'selesai'` |
+| `!=` atau `<>` | Tidak sama dengan | `WHERE status != 'dibatalkan'` |
+| `>`, `<`, `>=`, `<=` | Perbandingan angka/tanggal | `WHERE total_harga > 100000` |
+| `AND` | Kedua kondisi harus terpenuhi | `WHERE status = 'selesai' AND total_harga > 50000` |
+| `OR` | Salah satu kondisi cukup | `WHERE status = 'selesai' OR status = 'dikirim'` |
+| `IN` | Cocok dengan salah satu dari daftar | `WHERE status IN ('selesai', 'dikirim')` |
+| `BETWEEN` | Dalam rentang nilai | `WHERE total_harga BETWEEN 50000 AND 500000` |
+| `LIKE` | Pencocokan pola teks | `WHERE status LIKE 'di%'` |
+| `IS NULL` | Nilainya kosong | `WHERE penjual_id IS NULL` |
+
+---
+
+## Contoh Nyata: Analisis Pesanan Januari 2024
+
+Bayangkan kamu diminta tim data Tokopedia untuk mengambil semua pesanan yang berhasil diselesaikan di bulan Januari 2024 dengan nilai transaksi di atas Rp 100.000.
+
+```sql
+SELECT
+  pesanan_id,
+  user_id,
+  total_harga,
+  created_at
+FROM pesanan
+WHERE status = 'selesai'
+  AND created_at >= '2024-01-01'
+  AND created_at < '2024-02-01'
+  AND total_harga > 100000;
+```
+
+Perhatikan beberapa hal:
+- Kita memfilter `status = 'selesai'` untuk hanya mengambil transaksi sukses
+- Kita pakai range tanggal yang eksplisit (`>= Jan 1` dan `< Feb 1`) — ini lebih aman daripada `BETWEEN` untuk timestamp
+- Kondisi dipisahkan dengan `AND` karena semua harus terpenuhi sekaligus
+
+---
+
+## Latihan
+
+Coba tulis query untuk pertanyaan berikut menggunakan tabel `pesanan`:
+
+1. Ambil semua pesanan yang statusnya `'dibatalkan'`
+2. Tampilkan `pesanan_id` dan `total_harga` dari semua transaksi di atas Rp 1.000.000
+3. Ambil semua pesanan dari `user_id = 42` yang belum selesai (status bukan `'selesai'`)
+
+---
+
+## Poin Penting
+
+- `SELECT` menentukan kolom yang ingin diambil
+- `FROM` menentukan tabel sumber
+- `WHERE` menyaring baris berdasarkan kondisi
+- Urutan klausa SQL: `SELECT → FROM → WHERE`
+- Gunakan `AND` kalau semua kondisi harus terpenuhi, `OR` kalau cukup salah satu
